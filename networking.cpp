@@ -70,8 +70,9 @@ void Network::CreateListener(int portnum)
         auto packet = new uint8_t[LARGE_PACKET_SIZE];
         messageLength = recvfrom(sk, reinterpret_cast<char*>(packet), LARGE_PACKET_SIZE, 0,
             (struct sockaddr*) &remote, &rlen);
-        std::cout << "mesglen: " << messageLength << "\npayload: " << packet << '\n';
+        std::cout << "mesglen: " << messageLength << "\nopcode: " << *((uint16_t*)(packet+2)) << '\n';
         auto dispatch_thread = thread(Host::RoutePacket, packet);
+        dispatch_thread.detach();
     }
 
 }
@@ -108,6 +109,8 @@ void Network::SendPacketInThread(uint8_t *payload, int payload_size, HostInfo ho
     hp = gethostbyname(host_info.hostname.c_str());
     memcpy(&remote.sin_addr, hp->h_addr, hp->h_length);
     remote.sin_port = htons(host_info.port);
+
+    std::cout << "sending packet; size: " << *((uint16_t*)packet) << " opcode: " <<  *((uint16_t*)(packet+2)) << std::endl;
 
     sendto(sk, packet, payload_size, 0, reinterpret_cast<sockaddr*>(&remote), sizeof(remote));
 

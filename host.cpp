@@ -61,12 +61,18 @@ void Host::HandleClientData(uint8_t* raw_packet) {
 }
 
 void Host::HandleRequestVote(uint8_t* raw_packet) {
+    std::cout << "in handlerequestvote" << std::endl;
     //Timer::Reset();
     auto packet = reinterpret_cast<RequestVotePacket*>(raw_packet);
-    uint32_t sender_term = ntohl(packet->term);
-    uint8_t sender_index = static_cast<uint8_t>(ntohl(packet->candidate_index) & 0xFF);
-    uint32_t sender_log_index = ntohl(packet->last_log_index);
-    uint32_t sender_log_term = ntohl(packet->last_log_term);
+    uint32_t sender_term = (packet->term);
+    uint8_t sender_index = static_cast<uint8_t>((packet->candidate_index) & 0xFF);
+    uint32_t sender_log_index = (packet->last_log_index);
+    uint32_t sender_log_term = (packet->last_log_term);
+
+    std::cout << "sender_term: " << sender_term << std::endl;
+    std::cout << "sender_index: " << sender_index << std::endl;
+    std::cout << "sender_log_index: " << sender_log_index << std::endl;
+    std::cout << "sender_log_term: " << sender_log_term << std::endl;
 
     if (sender_term >= term) {
 
@@ -79,7 +85,7 @@ void Host::HandleRequestVote(uint8_t* raw_packet) {
         uint32_t vote = (voted_for == -1 || voted_for == sender_index) &&
             sender_log_term >= term && sender_log_index >= last_log_index;
         RequestVoteResponsePacket response(term, vote);
-        Network::SendPacket(response.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, sender_index);
+        Network::SendPacket(response.ToBytes(), SMALL_PACKET_SIZE, sender_index);
         term = sender_term;
         if (sender_term > term) {
             ChangeState(HostState::FOLLOWER);
@@ -87,7 +93,7 @@ void Host::HandleRequestVote(uint8_t* raw_packet) {
     }
     else {
         RequestVoteResponsePacket response(term, 0);
-        Network::SendPacket(response.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, sender_index);
+        Network::SendPacket(response.ToBytes(), SMALL_PACKET_SIZE, sender_index);
     }
 }
 
@@ -119,7 +125,7 @@ void Host::HandleRequestVoteResponse(uint8_t* raw_packet) {
         }
         EmptyAppendEntriesPacket packet(term, last_log_index, previous_term,
             commit_index, self_index, -1, 0);
-        Network::SendPackets(packet.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, others_indices, true);
+        Network::SendPackets(packet.ToBytes(), SMALL_PACKET_SIZE, others_indices, true);
     }
 }
 
@@ -152,7 +158,7 @@ void Host::HandleAppendEntries(uint8_t* raw_packet, bool is_empty) {
     if (sender_term < term ||
         previous_log_term != sender_previous_log_term) {
         AppendEntriesResponsePacket response(term, 0, self_index, 0);
-        Network::SendPacket(response.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, sender_president_index);
+        Network::SendPacket(response.ToBytes(), SMALL_PACKET_SIZE, sender_president_index);
         return;
     }
 
@@ -177,7 +183,7 @@ void Host::HandleAppendEntries(uint8_t* raw_packet, bool is_empty) {
     term = sender_term;
 
     AppendEntriesResponsePacket response(term, 1, self_index, sender_log_index);
-    Network::SendPacket(response.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, sender_president_index);
+    Network::SendPacket(response.ToBytes(), SMALL_PACKET_SIZE, sender_president_index);
 
 #ifndef RAFT_MODE
 
@@ -286,7 +292,7 @@ void Host::PresidentHandleAppendEntriesResponse(bool follower_success, uint32_t 
     }
     if (old_commit_index != commit_index) {
         CommitToClientPacket packet(commit_index);
-        Network::SendPackets(packet.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, vector<int>(), true);
+        Network::SendPackets(packet.ToBytes(), SMALL_PACKET_SIZE, vector<int>(), true);
     }
 }
 
@@ -308,7 +314,7 @@ void Host::HandleRequestAppendEntries(uint8_t* raw_packet) {
         EmptyAppendEntriesPacket response(term, last_log_index, previous_term,
             commit_index, self_index, -1, 0);
 
-        Network::SendPacket(response.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, sender_index);
+        Network::SendPacket(response.ToBytes(), SMALL_PACKET_SIZE, sender_index);
     }
 }
 
@@ -340,7 +346,8 @@ void Host::HandleVpCombinedResponse(uint8_t* raw_packet) {
 #endif
 
 void Host::RoutePacket(uint8_t* packet) {
-    auto opcode = ToUint16(packet + 2);
+    auto opcode = *reinterpret_cast<uint16_t*>(packet + 2);
+    std::cout << "RoutePacket: opcode = " << opcode << std::endl;
     switch (opcode) {
 	case CLIENT_DATA:
 		HandleClientData(packet);
@@ -429,7 +436,7 @@ void Host::PresidentState() {
         } else {
             auto packet = AppendEntriesPacket(term, group->first, log[group->first].term,
                 commit_index, self_index, vp_index, vp_host_bits);
-            Network::SendPackets(packet.ToNetworkOrder().ToBytes(), LARGE_PACKET_SIZE, group->second, false);
+            Network::SendPackets(packet.ToBytes(), LARGE_PACKET_SIZE, group->second, false);
         }
     }
 }
@@ -452,8 +459,8 @@ void Host::CandidateState() {
 
     RequestVotePacket request_vote(term, self_index, last_log_index, log_term);
 	std::cout << "before request vote" << std::endl;
-	auto packet_bytes = request_vote.ToNetworkOrder().ToBytes();
-    Network::SendPackets(packet_bytes, SMALL_PACKET_SIZE, others_indices, false);
+    //request_vote.ToNetworkOrder().ToBytes()
+    Network::SendPackets((uint8_t*)&request_vote, SMALL_PACKET_SIZE, others_indices, false);
     std::cout << "after request vote" << std::endl;
 
 }
@@ -467,7 +474,7 @@ void Host::FollowerState() {
         std::cout << "(president_index = " << president_index << ")" << std::endl;
         append_entry_request_sent = true;
         RequestAppendEntriesPacket packet(self_index);
-        Network::SendPacket(packet.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, president_index);
+        Network::SendPacket(packet.ToBytes(), SMALL_PACKET_SIZE, president_index);
     }
 }
 
@@ -495,7 +502,7 @@ void Host::VicePresidentState() {
 
     VpCombinedResponsePacket packet(vp_hosts_bits, vp_hosts_responded_bits,
         vp_hosts_success_bits, vp_hosts_max_term, vp_max_log_index);
-    Network::SendPacket(packet.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, president_index);
+    Network::SendPacket(packet.ToBytes(), SMALL_PACKET_SIZE, president_index);
 
     ChangeState(HostState::FOLLOWER);
 
