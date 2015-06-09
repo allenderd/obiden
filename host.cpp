@@ -26,7 +26,7 @@ uint8_t Host::voted_for = -1;
 uint32_t Host::commit_index = 0;
 uint32_t Host::last_log_index = 0;
 uint32_t Host::self_index = 0;
-uint32_t Host::president_index = 0;
+uint32_t Host::president_index = -1;
 uint32_t Host::vice_president_index = -1;
 uint32_t Host::num_hosts = 0;
 uint32_t* Host::hosts_next_index = NULL;
@@ -56,8 +56,10 @@ void Host::HandleClientData(uint8_t* raw_packet) {
 	uint32_t data = ntohl(packet->data);
 	uint32_t timestamp = ntohl(packet->timestamp);
 	log.push_back(LogEntry(term, timestamp, data));
+	std::cout << "acquiring mutex e2\n";
 	unique_lock<mutex> event_lock(event_mutex);
 	event_cv.notify_one();
+	std::cout << "releasing mutex e2\n";
 }
 
 void Host::HandleRequestVote(uint8_t* raw_packet) {
@@ -220,8 +222,10 @@ void Host::VpHandleAppendEntriesResponse(uint32_t follower_term, bool follower_s
     vp_hosts_responded_vector[follower_index] = true;
     vp_hosts_responded_bits |= 1 << follower_index;
     if (vp_hosts_bits == vp_hosts_responded_bits) {
+		std::cout << "acquiring mutex e1\n";
         auto lock = unique_lock<mutex>(event_mutex);
         event_cv.notify_one();
+		std::cout << "releasing mutex e1\n";
     }
 
 }
@@ -418,12 +422,12 @@ void Host::CandidateState() {
 }
 
 void Host::FollowerState() {
-    if (append_entry_request_sent) {
+    if (president_index == -1 || append_entry_request_sent) {
 		std::cout << "In Follower State" << std::endl;
         ChangeState(HostState::CANDIDATE);
     }
     else {
-		std::cout << "In Follower State" << std::endl;
+		std::cout << "In Follower Stat (president_index = " << president_index << ")" << std::endl;
         append_entry_request_sent = true;
         RequestAppendEntriesPacket packet(self_index);
         Network::SendPacket(packet.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, president_index);

@@ -6,6 +6,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <iostream>
+
 enum class HostState {
 	FOLLOWER,
 	CANDIDATE,
@@ -106,9 +108,11 @@ public:
     }
 
     static void ChangeState(HostState host_state) {
+		std::cout << "ChangeState getting lock\n";
         unique_lock<mutex> lock(event_mutex);
         Host::host_state = host_state;
         event_cv.notify_one();
+		std::cout << "CHangeState releasing lock\n";
     }
 
     static HostState CheckState() {

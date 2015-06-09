@@ -1,58 +1,66 @@
 host.cpp: In static member function ‘static void obiden::Host::HandleRequestVoteResponse(uint8_t*)’:
-host.cpp:99:24: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:101:24: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
      if (votes_received > num_hosts / 2) {
                         ^
-host.cpp:101:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:103:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < num_hosts; ++i) {
                            ^
 host.cpp: In static member function ‘static void obiden::Host::HandleAppendEntries(uint8_t*, bool)’:
-host.cpp:165:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:167:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < sizeof(sender_vp_hosts_bits) * 8; ++i) {
                            ^
 host.cpp: In static member function ‘static void obiden::Host::PresidentHandleAppendEntriesResponse(bool, uint32_t, bool, uint32_t)’:
-host.cpp:251:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:255:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < num_hosts; ++i) {
                            ^
-host.cpp:256:34: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:260:34: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          if (num_hosts_with_entry > num_hosts / 2) {
                                   ^
 host.cpp: In static member function ‘static void obiden::Host::HandleVpCombinedResponse(uint8_t*)’:
-host.cpp:297:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:301:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < sizeof(uint16_t); ++i) {
                            ^
-host.cpp:284:14: warning: unused variable ‘sender_vp_hosts_bits’ [-Wunused-variable]
+host.cpp:288:14: warning: unused variable ‘sender_vp_hosts_bits’ [-Wunused-variable]
      uint16_t sender_vp_hosts_bits = ntohs(packet->vp_hosts_bits);
               ^
 host.cpp: In static member function ‘static void obiden::Host::PresidentState()’:
-host.cpp:360:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:364:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < num_hosts; ++i) {
                            ^
+host.cpp: In static member function ‘static void obiden::Host::FollowerState()’:
+host.cpp:425:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+     if (president_index == -1 || append_entry_request_sent) {
+                         ^
 host.cpp: In static member function ‘static void obiden::Host::VicePresidentState()’:
-host.cpp:435:23: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:439:23: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
      for (int i = 0; i < num_hosts; ++i) {
                        ^
-host.cpp:466:23: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:470:23: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
      for (int i = 0; i < num_hosts; ++i) {
                        ^
 host.cpp: In static member function ‘static void obiden::Host::HandleRequestVoteResponse(uint8_t*)’:
-host.cpp:99:24: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:101:24: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
      if (votes_received > num_hosts / 2) {
                         ^
-host.cpp:101:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:103:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < num_hosts; ++i) {
                            ^
 host.cpp: In static member function ‘static void obiden::Host::HandleAppendEntries(uint8_t*, bool)’:
-host.cpp:127:14: warning: unused variable ‘sender_vp_hosts_bits’ [-Wunused-variable]
+host.cpp:129:14: warning: unused variable ‘sender_vp_hosts_bits’ [-Wunused-variable]
      uint16_t sender_vp_hosts_bits = ntohs(packet->header.vp_hosts_bits);
               ^
 host.cpp: In static member function ‘static void obiden::Host::PresidentHandleAppendEntriesResponse(bool, uint32_t, bool, uint32_t)’:
-host.cpp:251:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:255:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < num_hosts; ++i) {
                            ^
-host.cpp:256:34: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:260:34: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          if (num_hosts_with_entry > num_hosts / 2) {
                                   ^
 host.cpp: In static member function ‘static void obiden::Host::PresidentState()’:
-host.cpp:360:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+host.cpp:364:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
          for (int i = 0; i < num_hosts; ++i) {
                            ^
+host.cpp: In static member function ‘static void obiden::Host::FollowerState()’:
+host.cpp:425:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+     if (president_index == -1 || append_entry_request_sent) {
+                         ^
