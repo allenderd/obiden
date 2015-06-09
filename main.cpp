@@ -45,9 +45,9 @@ int main(int argc, char* argv[]) {
     std::cout << "launched timer thread" << std::endl;
     while (true) {
 
-		// anytime the host state changes, the event_cv should be signaled
-		unique_lock<mutex> lock(Host::event_mutex);
-		Host::event_cv.wait(lock);
+	// anytime the host state changes, the event_cv should be signaled
+	unique_lock<mutex> lock(Host::event_mutex);
+	Host::event_cv.wait(lock);
         std::cout << "before state choice" << std::endl;
 
         switch (Host::host_state) {

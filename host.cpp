@@ -29,8 +29,8 @@ uint32_t Host::self_index = 0;
 uint32_t Host::president_index = 0;
 uint32_t Host::vice_president_index = -1;
 uint32_t Host::num_hosts = 0;
-uint32_t* Host::hosts_next_index = nullptr;
-uint32_t* Host::hosts_match_index = nullptr;
+uint32_t* Host::hosts_next_index = NULL;
+uint32_t* Host::hosts_match_index = NULL;
 int Host::votes_received = 0;
 uint32_t Host::vp_hosts_max_term = 0;
 uint16_t Host::vp_hosts_bits = 0;
@@ -384,18 +384,18 @@ void Host::PresidentState() {
 #else
         bool found_vp = max_group < 3; // if group less than two don't find a vp
 #endif
-        for (auto& group : index_map) {
+        for (auto group = index_map.begin(); group != index_map.end(); ++group) {
             int vp_index = -1;
             uint16_t vp_host_bits = 0;
-            if (!found_vp && group.second.size() == max_group) {
-                vp_index = group.second[0];
-                for (int i : group.second) {
-                    vp_host_bits |= 1 << i;
+            if (!found_vp && group->second.size() == max_group) {
+                vp_index = group->second[0];
+                for (auto i = group->second.begin(); i != group->second.end(); i++) {
+                    vp_host_bits |= 1 << *i;
                 }
             }
             auto packet = AppendEntriesPacket(term, log_size - 1, log[log_size - 1].term,
                 commit_index, self_index, vp_index, vp_host_bits);
-            Network::SendPackets(packet.ToNetworkOrder().ToBytes(), LARGE_PACKET_SIZE, group.second, false);
+            Network::SendPackets(packet.ToNetworkOrder().ToBytes(), LARGE_PACKET_SIZE, group->second, false);
         }
     }
 

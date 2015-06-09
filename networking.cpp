@@ -77,9 +77,9 @@ void Network::CreateListener(int portnum)
 
 void Network::SendPackets(uint8_t *payload, int payload_size, const vector<int>& indices, bool to_client)
 {
-    for (auto index: indices)
+    for (auto index = indices.begin(); index != indices.end(); index++)
     {
-        auto host_thread = thread(SendPacketInThread, payload, payload_size, host_info_vector[index]);
+        auto host_thread = thread(SendPacketInThread, payload, payload_size, host_info_vector[*index]);
     }
     if (to_client) {
         auto client_thread = thread(SendPacketInThread, payload, payload_size, client_info);
