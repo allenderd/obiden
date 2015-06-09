@@ -47,6 +47,8 @@ void SendPacketInThread(uint8_t *payload, int payload_size)
 
 	sendto(sk, packet, payload_size, 0, reinterpret_cast<sockaddr*>(&remote), sizeof(remote));
 
+        close(sk);
+
 	delete[] packet;
 }
 

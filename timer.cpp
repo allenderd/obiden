@@ -1,3 +1,4 @@
+#if 0
 #include "timer.h"
 
 #include <iostream>
@@ -23,6 +24,7 @@ void Timer::Run() {
             milliseconds(wait_time);
         std::cout << "just about to release mutex t1\n";
         auto status = timer_cv.wait_for(lock, wait_ms);
+        lock.unlock();
         if (status) {
 			// if (Host::CheckState() == HostState::FOLLOWER) {
 			// 	Host::ChangeState(HostState::CANDIDATE);
@@ -60,3 +62,4 @@ void Timer::ChangeState(HostState host_state) {
     std::cout << "releasing mutex t3\n";
 }
 }
+#endif

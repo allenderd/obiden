@@ -1,3 +1,4 @@
+#define _GLIBCXX_USE_NANOSLEEP
 #include "networking.h"
 #include <iostream>
 #include <thread>
@@ -79,10 +80,12 @@ void Network::SendPackets(uint8_t *payload, int payload_size, const vector<int>&
 {
     for (auto index = indices.begin(); index != indices.end(); index++)
     {
-        auto host_thread = thread(SendPacketInThread, payload, payload_size, host_info_vector[*index]);
+        //auto host_thread = thread(SendPacketInThread, payload, payload_size, host_info_vector[*index]);
+        SendPacketInThread(payload, payload_size, host_info_vector[*index]);
     }
     if (to_client) {
-        auto client_thread = thread(SendPacketInThread, payload, payload_size, client_info);
+        //auto client_thread = thread(SendPacketInThread, payload, payload_size, client_info);
+        SendPacketInThread(payload, payload_size, client_info);
     }
 
 }
@@ -107,6 +110,8 @@ void Network::SendPacketInThread(uint8_t *payload, int payload_size, HostInfo ho
     remote.sin_port = htons(host_info.port);
 
     sendto(sk, packet, payload_size, 0, reinterpret_cast<sockaddr*>(&remote), sizeof(remote));
+
+    close(sk);
 
     delete[] packet;
 }

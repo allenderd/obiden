@@ -1,3 +1,4 @@
+#define _GLIBCXX_USE_NANOSLEEP
 #include <thread>
 #include <iostream>
 #include <fstream>
@@ -5,7 +6,7 @@
 
 #include "host.h"
 #include "networking.h"
-#include "timer.h"
+//#include "timer.h"
 
 using std::thread;
 using std::ifstream;
@@ -41,14 +42,19 @@ int main(int argc, char* argv[]) {
 
     auto listener_thread = thread(Network::CreateListener, hostinfo_vector[self_index].port);
     std::cout << "launched listener thread" << std::endl;
-    auto timer_thread = thread(Timer::Run);
-    std::cout << "launched timer thread" << std::endl;
+    //auto timer_thread = thread(Timer::Run);
+    //std::cout << "launched timer thread" << std::endl;
     while (true) {
 
 	// anytime the host state changes, the event_cv should be signaled
 	unique_lock<mutex> lock(Host::event_mutex);
-	Host::event_cv.wait(lock);
-        std::cout << "before state choice released e4" << std::endl;
+	//Host::event_cv.wait(lock);
+        auto sleep_time = Host::sleep_time;
+        lock.unlock();
+
+        //std::cout << "before state choice released e4" << std::endl;
+
+        sleep_for(sleep_time);
 
         switch (Host::host_state) {
         case HostState::PRESIDENT:
