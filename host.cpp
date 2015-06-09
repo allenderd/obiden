@@ -391,51 +391,46 @@ void Host::PresidentState() {
     size_t max_group = 0;
     //int max_next_index = -1;
     for (int i = 0; i < num_hosts; ++i) {
+        int host_next_index_i = -1;
         if (hosts_next_index[i] < log_size) {
-            if (index_map.count(hosts_next_index[i]) == 0) {
-                index_map[hosts_next_index[i]] = vector<int>{i};
-            }
-            else {
-                index_map[hosts_next_index[i]].push_back(i);
-            }
-            if (index_map[hosts_next_index[i]].size() > max_group) {
-                max_group = index_map[hosts_next_index[i]].size();
-                //max_next_index = hosts_next_index[i];
-            }
+            host_next_index_i = hosts_next_index[i];
+        }
+        if (index_map.count(hosts_next_index[i]) == 0) {
+            index_map[hosts_next_index[i]] = vector<int>{i};
+        }
+        else {
+            index_map[hosts_next_index[i]].push_back(i);
+        }
+        if (index_map[hosts_next_index[i]].size() > max_group) {
+            max_group = index_map[hosts_next_index[i]].size();
+            //max_next_index = hosts_next_index[i];
         }
     }
 
-    if (max_group == 0) {
-        need_to_send_heartbeat = true;
-    } else {
-
-        // we are going to send a real append entries, so we won't send an empty one
-        need_to_send_heartbeat = false;
 
 #ifdef RAFT_MODE
-        bool found_vp = true;
+    bool found_vp = true;
 #else
-        bool found_vp = max_group < 3; // if group less than three don't find a vp
+    bool found_vp = max_group < 3; // if group less than three don't find a vp
 #endif
-        for (auto group = index_map.begin(); group != index_map.end(); ++group) {
-            int vp_index = -1;
-            uint16_t vp_host_bits = 0;
-            if (!found_vp && group->second.size() == max_group) {
-                vp_index = group->second[0];
-                for (auto i = group->second.begin(); i != group->second.end(); i++) {
-                    vp_host_bits |= 1 << *i;
-                }
+    for (auto group = index_map.begin(); group != index_map.end(); ++group) {
+        int vp_index = -1;
+        uint16_t vp_host_bits = 0;
+        if (!found_vp && group->second.size() == max_group) {
+            vp_index = group->second[0];
+            for (auto i = group->second.begin(); i != group->second.end(); i++) {
+                vp_host_bits |= 1 << *i;
             }
-            auto packet = AppendEntriesPacket(term, log_size - 1, log[log_size - 1].term,
+        }
+        if (group->first == -1) {
+            EmptyAppendEntriesPacket packet(term, log_size - 1, log[log_size - 1].term,
+                commit_index, self_index, -1, 0);
+            Network::SendPackets(packet.ToNetworkOrder().ToBytes(), LARGE_PACKET_SIZE, group->second, false);
+        } else {
+            auto packet = AppendEntriesPacket(term, group->first, log[group->first].term,
                 commit_index, self_index, vp_index, vp_host_bits);
             Network::SendPackets(packet.ToNetworkOrder().ToBytes(), LARGE_PACKET_SIZE, group->second, false);
         }
-    }
-
-    if (need_to_send_heartbeat) {
-        EmptyAppendEntriesPacket packet(term, log_size - 1, log[log_size - 1].term,
-            commit_index, self_index, -1, 0);
-        Network::SendPackets(packet.ToNetworkOrder().ToBytes(), LARGE_PACKET_SIZE, others_indices, false);
     }
 }
 
@@ -457,7 +452,8 @@ void Host::CandidateState() {
 
     RequestVotePacket request_vote(term, self_index, last_log_index, log_term);
 	std::cout << "before request vote" << std::endl;
-    Network::SendPackets(request_vote.ToNetworkOrder().ToBytes(), SMALL_PACKET_SIZE, others_indices, false);
+	auto packet_bytes = request_vote.ToNetworkOrder().ToBytes();
+    Network::SendPackets(packet_bytes, SMALL_PACKET_SIZE, others_indices, false);
     std::cout << "after request vote" << std::endl;
 
 }
