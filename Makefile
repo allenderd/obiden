@@ -9,8 +9,11 @@ raft: main.cpp host.cpp networking.cpp timer.cpp timer.h packets.h networking.h 
 client: client.cpp packets.h networking.h host.h
 	g++ -std=c++0x -Wall -o client client.cpp -lpthread
 	
-president_demo: president_demo.cpp networking.cpp networking.h packets.h
-    g++ -std=gnu++0x -Wall -o president_demo president_demo.cpp networking.cpp -lpthread
+president_demo: president_demo.cpp packets.h
+	g++ -g -std=c++0x -Wall -o president_demo president_demo.cpp -lpthread
+
+follower_demo: follower_demo.cpp packets.h
+	g++ -g -std=c++0x -Wall -o follower_demo follower_demo.cpp -lpthread
 
 clean:
-	rm -f *.o *~ obiden client raft president_demo
+	rm -f *.o *~ obiden client raft president_demo follower_demo
